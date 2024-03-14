@@ -1,0 +1,78 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+
+'Runs off hook 17380
+V.Local.swidths.Declare(String)
+V.Local.stitles.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sQuery.Declare(String)
+V.Local.sError.Declare(String)
+V.Local.bRet.Declare(Boolean,True)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,17380)
+'	F.Global.Security.IsInGroup(V.Caller.User,"INVLOCBR",V.Caller.CompanyCode,V.Local.bRet)
+	
+	F.Intrinsic.Control.If(V.Local.bRet)
+		F.ODBC.Connection!con.OpenCompanyConnection
+		
+		F.Intrinsic.String.Build("Select Text from USER_OPTIONS where Option_ID = '000014' and Seq = '0001' and ID = '{0}'", v.Caller.User, v.Local.sQuery)
+		F.ODBC.Connection!con.ExecuteAndReturn(v.Local.sQuery, v.Local.sRet)
+		
+'		F.Intrinsic.Control.If(v.Local.sRet.Trim, =, "")
+'			v.Local.sQuery.Set("SELECT PART, LOCATION, DESCRIPTION, PRODUCT_LINE,QTY_ONHAND from INVENTORY_MSTR ORDER BY PART,LOCATION")
+'		F.Intrinsic.Control.Else
+		F.Intrinsic.Control.If(v.Local.sRet.Trim, <>, "")
+			F.Intrinsic.String.Concat("SELECT PART, LOCATION, DESCRIPTION, PRODUCT_LINE,QTY_ONHAND from INVENTORY_MSTR WHERE LOCATION IN  (",V.Local.sQuery,") ORDER BY PART,LOCATION",V.Local.sQuery)
+		
+			F.Intrinsic.String.Split("Part*!*Loc*!*Description*!*PL*!*Qty On Hand","*!*",V.Local.stitles)
+			F.Intrinsic.String.Split("3000*!*1000*!*3000*!*1000*!*2000","*!*",V.Local.swidths)
+			'Uses custom view to separate Rev and Part
+			F.Intrinsic.UI.Browser("Select a Inventory Part","con",V.Local.sQuery,V.Local.stitles,V.Local.swidths,11000,6000,V.Local.sRet)
+			F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+				F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+				V.Passed.009001.Set(V.Local.sret(0))
+				V.Passed.009002.Set(V.Local.sRet(1))
+				V.Passed.777777.Set(1)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.CallSub(Exit)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_5759_Inv_Loc_Browser.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Exit)
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Exit.Start
+F.Intrinsic.Control.Try
+
+	V.Local.sError.Declare(String)
+	
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+		F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_5759_Inv_Loc_Browser.g2u",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.EndTry
+Program.Sub.Exit.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$$}$12:00:00 AM$}$False
+Program.Sub.Comments.End
